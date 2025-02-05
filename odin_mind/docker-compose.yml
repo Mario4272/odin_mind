@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./llm/models/ollama_model:/mnt/models
+      - ./llm/infrastructure:/mnt/infrastructure
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_DEBUG=false
+    deploy:
+      replicas: 1  # This allows scaling the number of Ollama containers
+
+  gradio-ui:
+    image: gradio/gradio:latest
+    container_name: gradio-ui
+    ports:
+      - "7860:7860"
+    environment:
+      - GRADIO_MODEL_API=http://ollama:11434
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  letta:
+    image: letta/letta:latest
+    container_name: letta
+    ports:
+      - "7860:7860"
+    environment:
+      - GRADIO_MODEL_API=http://ollama:11434
+    depends_on:
+      - ollama
+    restart: unless-stopped
