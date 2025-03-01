@@ -1,3 +1,4 @@
+# Base image
 FROM ubuntu:20.04
 
 # Install necessary dependencies
@@ -8,11 +9,16 @@ RUN apt-get update && \
     python3-dev \
     git \
     curl \
+    net-tools \
+    iputils-ping \
+    nano \
+    vim \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements_dev.txt .
-RUN pip3 install --no-cache-dir -r requirements_dev.txt
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Set the working directory
 WORKDIR /app
@@ -20,8 +26,12 @@ WORKDIR /app
 # Copy the code
 COPY . /app
 
-# Expose the necessary port (adjust if needed)
-EXPOSE 7860
+# Copy everything from the local `ui` directory into the container
+COPY ./scripts /app/ui/scripts
+COPY requirements.txt /app/
 
-# Command to run the UI (adjust according to your UI service)
-CMD ["python3", "ui/scripts/gradio_app.py"]
+# UI  service will be added later, for now just expose a port
+EXPOSE 8000
+
+# Run the Gradio app and bind to 0.0.0.0 for external access
+CMD ["python3", "/app/ui/scripts/gradio_app.py", "--server_name", "0.0.0.0"]

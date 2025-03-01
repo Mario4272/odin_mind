@@ -1,3 +1,4 @@
+# Base image
 FROM ubuntu:20.04
 
 # Install necessary dependencies
@@ -8,11 +9,16 @@ RUN apt-get update && \
     python3-dev \
     git \
     curl \
+    net-tools \
+    iputils-ping \
+    nano \
+    vim \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements_dev.txt .
-RUN pip3 install --no-cache-dir -r requirements_dev.txt
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Set the working directory
 WORKDIR /app

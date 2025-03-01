@@ -1,38 +1,43 @@
-version: "3.9"
-
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
+  llm:
+    build: ./llm
+    container_name: llm
     ports:
       - "11434:11434"
+    networks:
+      - odin_network
     volumes:
-      - ./llm/models/ollama_model:/mnt/models
-      - ./llm/infrastructure:/mnt/infrastructure
+      - ~/projects/odin_mind/llm/models:/app/llm/models
     environment:
-      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_DEBUG=false
-    deploy:
-      replicas: 1  # This allows scaling the number of Ollama containers
+    restart: unless-stopped
 
-  gradio-ui:
-    image: gradio/gradio:latest
-    container_name: gradio-ui
+  ui:
+    build: ./ui
+    container_name: ui
     ports:
       - "7860:7860"
     environment:
-      - GRADIO_MODEL_API=http://ollama:11434
+      - OLLAMA_URL=http://llm:11434
+    networks:
+      - odin_network
     depends_on:
-      - ollama
+      - llm
     restart: unless-stopped
 
   letta:
     image: letta/letta:latest
     container_name: letta
     ports:
-      - "7860:7860"
-    environment:
-      - GRADIO_MODEL_API=http://ollama:11434
+      - "7861:7861"
+    networks:
+      - odin_network
     depends_on:
-      - ollama
+      - llm
     restart: unless-stopped
+
+networks:
+  odin_network:
+    driver: bridge
+    name: odin_network  # Explicitly name the network to avoid prefixing issues
